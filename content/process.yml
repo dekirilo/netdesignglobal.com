@@ -1,0 +1,15 @@
+heading: From Design to Deployment
+description: A structured engagement model that eliminates surprises, keeps projects on budget, and delivers on time.
+steps:
+  - number: "01"
+    title: Assessment
+    description: Deep-dive into your current infrastructure, traffic patterns, security posture, and growth roadmap to establish a clear baseline.
+  - number: "02"
+    title: Design
+    description: HLD and LLD creation, IP addressing plans, redundancy modeling, and full stakeholder review and sign-off before a single cable moves.
+  - number: "03"
+    title: Implementation
+    description: Zero-downtime deployment using change management best practices, automation scripts, and full validation testing at every stage.
+  - number: "04"
+    title: Optimization
+    description: Continuous monitoring, performance tuning, security reviews, and quarterly architecture assessments to keep you ahead of demand.

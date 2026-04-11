@@ -1,0 +1,22 @@
+heading_line1: Built for Performance.
+heading_line2: Designed for Security.
+description: We don't bolt on security as an afterthought. Every network we design is architected from day one with resilience, automation, and zero-trust principles baked in at every layer.
+features:
+  - number: "01"
+    title: Vendor-Neutral
+    description: Best solution for your needs, not our vendor relationships.
+  - number: "02"
+    title: Security-First
+    description: Zero Trust and micro-segmentation built into every design layer.
+  - number: "03"
+    title: Automation-Driven
+    description: Ansible, Terraform, and IaC for repeatable, error-free deployments.
+  - number: "04"
+    title: Scalable by Design
+    description: Architecture that grows with your business — no rip-and-replace.
+  - number: "05"
+    title: Certified Engineers
+    description: CCIE, CCNP, and cloud-certified specialists on every project.
+  - number: "06"
+    title: Full Lifecycle
+    description: Design, deploy, monitor, optimize — one partner, end to end.

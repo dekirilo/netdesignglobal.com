@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NetDesignGlobal — Content Manager</title>
+<style>
+/* ── Reset & base ── */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:    #04091a; --bg2:   #080f24; --bg3:   #0c1630;
+  --blue:  #0563ff; --cyan:  #00d4ff;
+  --text:  #dce8f7; --muted: #5e7a9a;
+  --white: #ffffff; --border:rgba(0,180,255,0.15);
+  --green: #00c875; --red:   #ff4d4d;
+}
+html{font-size:15px}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--cyan);text-decoration:none}
+button{cursor:pointer;font-family:inherit}
+
+/* ── Layout ── */
+#app{display:flex;flex:1;min-height:100vh}
+
+/* ── Sidebar ── */
+#sidebar{
+  width:240px;flex-shrink:0;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.sidebar-logo{
+  padding:20px 20px 16px;
+  border-bottom:1px solid var(--border);
+}
+.sidebar-logo .logo-name{
+  font-family:monospace;font-weight:700;font-size:1rem;
+  color:var(--white);letter-spacing:0.05em;
+}
+.sidebar-logo .logo-sub{
+  font-size:0.65rem;color:var(--muted);
+  letter-spacing:0.1em;text-transform:uppercase;margin-top:3px;
+}
+.nav-section{padding:12px 12px 4px;font-size:0.6rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 16px;margin:1px 8px;border-radius:4px;
+  color:var(--muted);font-size:0.88rem;cursor:pointer;
+  border:none;background:none;width:calc(100% - 16px);text-align:left;
+  transition:color 0.15s,background 0.15s;
+}
+.nav-item:hover{color:var(--text);background:var(--bg3)}
+.nav-item.active{color:var(--cyan);background:rgba(0,212,255,0.08)}
+.nav-item .nav-icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.sidebar-footer{margin-top:auto;padding:16px;border-top:1px solid var(--border)}
+.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--muted);margin-right:6px}
+.status-dot.ok{background:var(--green)}
+.status-dot.building{background:#f5a623}
+.status-dot.error{background:var(--red)}
+#status-text{font-size:0.72rem;color:var(--muted)}
+
+/* ── Main content ── */
+#main{flex:1;overflow-y:auto}
+#topbar{
+  position:sticky;top:0;z-index:10;
+  background:rgba(4,9,26,0.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:0 32px;height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+#page-title{font-size:1.05rem;font-weight:600;color:var(--white)}
+.topbar-actions{display:flex;gap:10px;align-items:center}
+#save-btn{
+  background:var(--blue);color:var(--white);
+  border:none;padding:8px 20px;border-radius:4px;
+  font-size:0.85rem;font-weight:600;letter-spacing:0.04em;
+  transition:background 0.2s,opacity 0.2s;
+}
+#save-btn:hover{background:#1572ff}
+#save-btn:disabled{opacity:0.5;cursor:not-allowed}
+#rebuild-btn{
+  background:transparent;color:var(--cyan);
+  border:1px solid var(--border);padding:7px 16px;border-radius:4px;
+  font-size:0.82rem;transition:border-color 0.2s,background 0.2s;
+}
+#rebuild-btn:hover{border-color:var(--cyan);background:rgba(0,212,255,0.06)}
+
+/* ── Toast ── */
+#toast{
+  position:fixed;bottom:24px;right:24px;z-index:999;
+  background:var(--bg3);border:1px solid var(--border);
+  padding:12px 20px;border-radius:6px;font-size:0.85rem;
+  transform:translateY(80px);opacity:0;
+  transition:transform 0.3s,opacity 0.3s;
+  pointer-events:none;max-width:320px;
+}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.success{border-color:var(--green);color:var(--green)}
+#toast.error{border-color:var(--red);color:var(--red)}
+
+/* ── Page content ── */
+#page-content{padding:32px}
+.section-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:6px;margin-bottom:20px;overflow:hidden;
+}
+.section-card-header{
+  padding:14px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  cursor:pointer;user-select:none;
+}
+.section-card-header h3{font-size:0.95rem;font-weight:600;color:var(--white)}
+.section-card-header .toggle-icon{color:var(--muted);transition:transform 0.2s;font-size:0.8rem}
+.section-card-header.collapsed .toggle-icon{transform:rotate(-90deg)}
+.section-card-body{padding:20px;display:flex;flex-direction:column;gap:16px}
+.section-card-body.collapsed{display:none}
+
+/* ── Form fields ── */
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.field .hint{font-size:0.7rem;color:var(--muted);opacity:0.7;margin-top:-2px}
+.field input,.field textarea,.field select{
+  background:var(--bg);border:1px solid var(--border);
+  color:var(--text);padding:9px 12px;border-radius:4px;
+  font-family:inherit;font-size:0.9rem;width:100%;
+  transition:border-color 0.2s;outline:none;
+}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--cyan)}
+.field textarea{resize:vertical;min-height:80px;line-height:1.55}
+.field input[type="color"]{padding:4px 8px;height:38px;cursor:pointer}
+.field select option{background:var(--bg2)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+
+/* ── List field ── */
+.list-field{display:flex;flex-direction:column;gap:10px}
+.list-item{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:4px;padding:16px;
+  display:flex;flex-direction:column;gap:12px;
+  position:relative;
+}
+.list-item-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:4px;
+}
+.list-item-title{font-size:0.78rem;font-weight:600;color:var(--cyan);letter-spacing:0.06em;text-transform:uppercase}
+.list-item-actions{display:flex;gap:6px}
+.btn-icon{
+  background:none;border:1px solid var(--border);color:var(--muted);
+  width:28px;height:28px;border-radius:3px;font-size:0.75rem;
+  display:flex;align-items:center;justify-content:center;
+  transition:color 0.15s,border-color 0.15s;cursor:pointer;
+}
+.btn-icon:hover{color:var(--text);border-color:var(--border)}
+.btn-icon.danger:hover{color:var(--red);border-color:var(--red)}
+.btn-add{
+  background:transparent;border:1px dashed rgba(0,212,255,0.3);
+  color:var(--cyan);padding:10px;border-radius:4px;
+  font-size:0.82rem;width:100%;text-align:center;
+  transition:border-color 0.2s,background 0.2s;
+}
+.btn-add:hover{border-color:var(--cyan);background:rgba(0,212,255,0.05)}
+
+/* ── Loading ── */
+#loading{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:60vh;gap:16px;color:var(--muted);
+}
+.spinner{
+  width:32px;height:32px;border:2px solid var(--border);
+  border-top-color:var(--cyan);border-radius:50%;
+  animation:spin 0.8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Preview link ── */
+.preview-link{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:0.75rem;color:var(--muted);border:1px solid var(--border);
+  padding:5px 12px;border-radius:4px;
+  transition:color 0.15s,border-color 0.15s;
+}
+.preview-link:hover{color:var(--cyan);border-color:var(--cyan)}
+
+/* ── Responsive ── */
+@media(max-width:700px){
+  #sidebar{display:none}
+  .field-row,.field-row-3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-name">NetDesignGlobal</div>
+      <div class="logo-sub">Content Manager</div>
+    </div>
+
+    <div class="nav-section">Site</div>
+    <button class="nav-item active" data-page="settings" onclick="loadPage('settings')">
+      <span class="nav-icon">⚙️</span> Site Settings
+    </button>
+
+    <div class="nav-section">Homepage</div>
+    <button class="nav-item" data-page="hero"       onclick="loadPage('hero')">      <span class="nav-icon">🚀</span> Hero Section</button>
+    <button class="nav-item" data-page="services"   onclick="loadPage('services')">  <span class="nav-icon">🏢</span> Services</button>
+    <button class="nav-item" data-page="why"        onclick="loadPage('why')">       <span class="nav-icon">✅</span> Why Choose Us</button>
+    <button class="nav-item" data-page="industries" onclick="loadPage('industries')"><span class="nav-icon">🏭</span> Industries</button>
+    <button class="nav-item" data-page="process"    onclick="loadPage('process')">   <span class="nav-icon">🔄</span> Our Process</button>
+    <button class="nav-item" data-page="tech"       onclick="loadPage('tech')">      <span class="nav-icon">💻</span> Technology</button>
+    <button class="nav-item" data-page="cta"        onclick="loadPage('cta')">       <span class="nav-icon">📞</span> CTA & Contact</button>
+
+    <div class="sidebar-footer">
+      <span class="status-dot" id="status-dot"></span>
+      <span id="status-text">Checking...</span><br>
+      <a href="/" target="_blank" class="preview-link" style="margin-top:10px;display:inline-flex">
+        🌐 View Site
+      </a>
+    </div>
+  </aside>
+
+  <div id="main">
+    <div id="topbar">
+      <span id="page-title">Site Settings</span>
+      <div class="topbar-actions">
+        <button id="rebuild-btn" onclick="triggerRebuild()">🔨 Rebuild Site</button>
+        <button id="save-btn" onclick="savePage()">Save Changes</button>
+      </div>
+    </div>
+    <div id="page-content">
+      <div id="loading"><div class="spinner"></div><span>Loading content...</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+// ── API base — same origin, nginx proxies /api to cms container ──────────────
+const API = '/api';
+let currentPage = 'settings';
+let currentData = {};
+
+// ── Status polling ───────────────────────────────────────────────────────────
+async function pollStatus() {
+  try {
+    const r = await fetch(`${API}/status`);
+    const d = await r.json();
+    const dot  = document.getElementById('status-dot');
+    const txt  = document.getElementById('status-text');
+    dot.className = 'status-dot ' + (d.buildStatus || 'idle');
+    txt.textContent = d.buildStatus === 'ok'
+      ? 'Site is live'
+      : d.buildStatus === 'building'
+        ? 'Building...'
+        : d.buildStatus === 'error'
+          ? 'Build error'
+          : 'Ready';
+  } catch(e) {
+    document.getElementById('status-text').textContent = 'API offline';
+  }
+}
+setInterval(pollStatus, 3000);
+pollStatus();
+
+// ── Navigation ───────────────────────────────────────────────────────────────
+async function loadPage(name) {
+  currentPage = name;
+
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelector(`[data-page="${name}"]`)?.classList.add('active');
+
+  const titles = {
+    settings:'⚙️ Site Settings', hero:'🚀 Hero Section', services:'🏢 Services',
+    why:'✅ Why Choose Us', industries:'🏭 Industries', process:'🔄 Our Process',
+    tech:'💻 Technology Stack', cta:'📞 CTA & Contact'
+  };
+  document.getElementById('page-title').textContent = titles[name] || name;
+  document.getElementById('page-content').innerHTML = '<div id="loading"><div class="spinner"></div><span>Loading...</span></div>';
+
+  try {
+    const r = await fetch(`${API}/content/${name}`);
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error);
+    currentData = j.data || {};
+    renderPage(name, currentData);
+  } catch(e) {
+    document.getElementById('page-content').innerHTML =
+      `<div id="loading" style="color:var(--red)">❌ ${e.message}<br><small>Is the CMS container running?</small></div>`;
+  }
+}
+
+// ── Save ─────────────────────────────────────────────────────────────────────
+async function savePage() {
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+  try {
+    const data = collectFormData();
+    const r    = await fetch(`${API}/content/${currentPage}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error);
+    currentData = data;
+    toast('✅ Saved! Site is rebuilding...', 'success');
+    setTimeout(pollStatus, 800);
+  } catch(e) {
+    toast('❌ ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save Changes';
+  }
+}
+
+async function triggerRebuild() {
+  toast('🔨 Rebuilding...', '');
+  await fetch(`${API}/rebuild`, { method:'POST' });
+  setTimeout(pollStatus, 1000);
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function toast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + type;
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.className = '', 3500);
+}
+
+// ── Field helpers ─────────────────────────────────────────────────────────────
+function field(label, name, value, type='text', hint='') {
+  const v = value ?? '';
+  return `
+  <div class="field">
+    <label>${label}</label>
+    ${hint ? `<span class="hint">${hint}</span>` : ''}
+    <input type="${type}" name="${name}" value="${esc(v)}" ${type==='color'?'':'placeholder="'+esc(v)+'"'}>
+  </div>`;
+}
+function textarea(label, name, value, hint='') {
+  return `
+  <div class="field">
+    <label>${label}</label>
+    ${hint ? `<span class="hint">${hint}</span>` : ''}
+    <textarea name="${name}" rows="3">${esc(value ?? '')}</textarea>
+  </div>`;
+}
+function card(title, body, collapsed=false) {
+  return `
+  <div class="section-card">
+    <div class="section-card-header ${collapsed?'collapsed':''}" onclick="toggleCard(this)">
+      <h3>${title}</h3><span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-card-body ${collapsed?'collapsed':''}">${body}</div>
+  </div>`;
+}
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function toggleCard(hdr) {
+  hdr.classList.toggle('collapsed');
+  hdr.nextElementSibling.classList.toggle('collapsed');
+}
+
+// ── Form data collector ───────────────────────────────────────────────────────
+function collectFormData() {
+  const form   = document.getElementById('edit-form');
+  const result = JSON.parse(JSON.stringify(currentData)); // deep clone
+
+  // Simple scalar fields
+  form.querySelectorAll('input[name],textarea[name],select[name]').forEach(el => {
+    const n = el.name;
+    if (!n || n.startsWith('list_')) return;
+    setNested(result, n, el.value);
+  });
+
+  // List fields — read from DOM
+  form.querySelectorAll('.list-field').forEach(listEl => {
+    const listName = listEl.dataset.list;
+    const items    = [];
+    listEl.querySelectorAll('.list-item[data-index]').forEach(itemEl => {
+      const obj = {};
+      itemEl.querySelectorAll('[data-field]').forEach(f => {
+        obj[f.dataset.field] = f.value;
+      });
+      items.push(obj);
+    });
+    setNested(result, listName, items);
+  });
+
+  return result;
+}
+
+function setNested(obj, path, val) {
+  const parts = path.split('.');
+  let cur = obj;
+  for (let i = 0; i < parts.length - 1; i++) {
+    if (cur[parts[i]] === undefined) cur[parts[i]] = {};
+    cur = cur[parts[i]];
+  }
+  cur[parts[parts.length-1]] = val;
+}
+
+// ── Page renderers ────────────────────────────────────────────────────────────
+function renderPage(name, d) {
+  const renderers = {
+    settings, hero, services, why, industries, process, tech, cta
+  };
+  const html = renderers[name] ? renderers[name](d) : '<p>Unknown page</p>';
+  document.getElementById('page-content').innerHTML = `<form id="edit-form">${html}</form>`;
+}
+
+// ── SETTINGS ──────────────────────────────────────────────────────────────────
+function settings(d) {
+  return card('Business Info', `
+    <div class="field-row">
+      ${field('Site Name','site_name',d.site_name)}
+      ${field('Contact Email','contact_email',d.contact_email,'email')}
+    </div>
+    <div class="field-row">
+      ${field('Contact Phone','contact_phone',d.contact_phone)}
+      ${field('LinkedIn URL','linkedin',d.linkedin,'url')}
+    </div>
+    <div class="field-row">
+      ${field('Twitter / X URL','twitter',d.twitter,'url')}
+      ${field('Site Description (SEO)','site_description',d.site_description)}
+    </div>
+  `) +
+  card('Brand Colors', `
+    <p style="font-size:0.8rem;color:var(--muted);margin-bottom:8px">Change any color and click Save — the site rebuilds automatically.</p>
+    <div class="field-row-3">
+      ${field('Primary Blue (buttons)','color_blue',d.color_blue||'#0563ff','color')}
+      ${field('Accent Cyan (highlights)','color_cyan',d.color_cyan||'#00d4ff','color')}
+      ${field('Background Dark','color_bg',d.color_bg||'#04091a','color')}
+    </div>
+  `) +
+  card('Footer', `
+    ${textarea('Brand Tagline (under logo)','footer_tagline',d.footer_tagline)}
+    ${field('Footer Bottom Text','footer_bottom',d.footer_bottom)}
+  `);
+}
+
+// ── HERO ──────────────────────────────────────────────────────────────────────
+function hero(d) {
+  const stats = (d.stats||[]).map((s,i) => `
+    <div class="list-item" data-index="${i}">
+      <div class="list-item-header">
+        <span class="list-item-title">Stat ${i+1}</span>
+        <div class="list-item-actions">
+          <button type="button" class="btn-icon danger" onclick="removeItem(this)">✕</button>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Number</label><input data-field="number" value="${esc(s.number)}"></div>
+        <div class="field"><label>Label</label><input data-field="label" value="${esc(s.label)}"></div>
+      </div>
+    </div>`).join('');
+
+  return card('Headline', `
+    ${field('Eyebrow Label','eyebrow',d.eyebrow)}
+    ${field('Line 1','headline_line1',d.headline_line1)}
+    ${field('Accent Line (cyan)','headline_accent',d.headline_accent,'text','This line appears highlighted in cyan')}
+    ${field('Line 3','headline_line3',d.headline_line3)}
+    ${textarea('Subheadline','subheadline',d.subheadline)}
+  `) +
+  card('Buttons', `
+    <div class="field-row">
+      ${field('Primary CTA Label','cta_primary_label',d.cta_primary_label)}
+      ${field('Secondary CTA Label','cta_secondary_label',d.cta_secondary_label)}
+    </div>
+  `) +
+  card('Stats (right side)', `
+    <div class="list-field" data-list="stats">${stats}</div>
+    <button type="button" class="btn-add" onclick="addStat()">+ Add Stat</button>
+  `);
+}
+function addStat() {
+  const list = document.querySelector('[data-list="stats"]');
+  const i    = list.querySelectorAll('.list-item').length;
+  const div  = document.createElement('div');
+  div.className = 'list-item'; div.dataset.index = i;
+  div.innerHTML = `
+    <div class="list-item-header">
+      <span class="list-item-title">Stat ${i+1}</span>
+      <div class="list-item-actions">
+        <button type="button" class="btn-icon danger" onclick="removeItem(this)">✕</button>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Number</label><input data-field="number" value=""></div>
+      <div class="field"><label>Label</label><input data-field="label" value=""></div>
+    </div>`;
+  list.appendChild(div);
+}
+
+// ── SERVICES ──────────────────────────────────────────────────────────────────
+function services(d) {
+  const icons = ['monitor','database','lock','cloud','chart','radio','sun','file'];
+  const iconOpts = icons.map(i => `<option value="${i}">${i}</option>`).join('');
+
+  const items = (d.items||[]).map((s,i) => `
+    <div class="list-item" data-index="${i}">
+      <div class="list-item-header">
+        <span class="list-item-title">Service ${i+1}</span>
+        <div class="list-item-actions">
+          <button type="button" class="btn-icon" onclick="moveItem(this,-1)" title="Move up">↑</button>
+          <button type="button" class="btn-icon" onclick="moveItem(this,1)"  title="Move down">↓</button>
+          <button type="button" class="btn-icon danger" onclick="removeItem(this)">✕</button>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Title</label><input data-field="title" value="${esc(s.title)}"></div>
+        <div class="field"><label>Icon</label>
+          <select data-field="icon">${icons.map(ic=>`<option value="${ic}" ${ic===s.icon?'selected':''}>${ic}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="field"><label>Description</label><textarea data-field="description" rows="2">${esc(s.description)}</textarea></div>
+      <div class="field"><label>Tags (comma-separated)</label><input data-field="tags" value="${esc(s.tags)}"></div>
+    </div>`).join('');
+
+  return card('Section Header', `
+    ${field('Section Heading','heading',d.heading)}
+    ${textarea('Section Description','description',d.description)}
+  `) +
+  card('Service Cards', `
+    <div class="list-field" data-list="items">${items}</div>
+    <button type="button" class="btn-add" onclick="addService()">+ Add Service Card</button>
+  `);
+}
+function addService() {
+  const list = document.querySelector('[data-list="items"]');
+  const i    = list.querySelectorAll('.list-item').length;
+  const icons = ['monitor','database','lock','cloud','chart','radio','sun','file'];
+  const div = document.createElement('div');
+  div.className='list-item'; div.dataset.index=i;
+  div.innerHTML=`
+    <div class="list-item-header">
+      <span class="list-item-title">Service ${i+1}</span>
+      <div class="list-item-actions">
+        <button type="button" class="btn-icon" onclick="moveItem(this,-1)">↑</button>
+        <button type="button" class="btn-icon" onclick="moveItem(this,1)">↓</button>
+        <button type="button" class="btn-icon danger" onclick="removeItem(this)">✕</button>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Title</label><input data-field="title" value="New Service"></div>
+      <div class="field"><label>Icon</label><select data-field="icon">${icons.map(ic=>`<option value="${ic}">${ic}</option>`).join('')}</select></div>
+    </div>
+    <div class="field"><label>Description</label><textarea data-field="description" rows="2"></textarea></div>
+    <div class="field"><label>Tags (comma-separated)</label><input data-field="tags" value=""></div>`;
+  list.appendChild(div);
+}
+
+// ── WHY ───────────────────────────────────────────────────────────────────────
+function why(d) {
+  const feats = (d.features||[]).map((f,i)=>`
+    <div class="list-item" data-index="${i}">
+      <div class="list-item-header">
+        <span class="list-item-title">Feature ${i+1}</span>
+        <button type="button" class="btn-icon danger" onclick="removeItem(this)">✕</button>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Number Label</label><input data-field="number" value="${esc(f.number)}"></div>
+        <div class="field"><label>Title</label><input data-field="title" value="${esc(f.title)}"></div>
+      </div>
+      <div class="field"><label>Description</label><textarea data-field="description" rows="2">${esc(f.description)}</textarea></div>
+    </div>`).join('');
+  return card('Heading', `
+    ${field('Line 1','heading_line1',d.heading_line1)}
+    ${field('Line 2 (cyan accent)','heading_line2',d.heading_line2)}
+    ${textarea('Description','description',d.description)}
+  `) +
+  card('Features', `
+    <div class="list-field" data-list="features">${feats}</div>
+    <button type="button" class="btn-add" onclick="addFeature()">+ Add Feature</button>
+  `);
+}
+function addFeature() {
+  const list = document.querySelector('[data-list="features"]');
+  const i = list.querySelectorAll('.list-item').length;
+  const div = document.createElement('div');
+  div.className='list-item'; div.dataset.index=i;
+  div.innerHTML=`
+    <div class="list-item-header">
+      <span class="list-item-title">Feature ${i+1}</span>
+      <button type="button" class="btn-icon danger" onclick="removeItem(this)">✕</button>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Number Label</label><input data-field="number" value="0${i+1}"></div>
+      <div class="field"><label>Title</label><input data-field="title" value="New Feature"></div>
+    </div>
+    <div class="field"><label>Description</label><textarea data-field="description" rows="2"></textarea></div>`;
+  list.appendChild(div);
+}
+
+// ── INDUSTRIES ────────────────────────────────────────────────────────────────
+function industries(d) {
+  const items = (d.items||[]).map((ind,i)=>`
+    <div class="list-item" data-index="${i}">
+      <div class="list-item-header">
+        <span class="list-item-title">${esc(ind.name)||'Industry '+(i+1)}</span>
+        <div class="list-item-actions">
+          <button type="button" class="btn-icon" onclick="moveItem(this,-1)">↑</button>
+          <button type="button" class="btn-icon" onclick="moveItem(this,1)">↓</button>
+          <button type="button" class="btn-icon danger" onclick="removeItem(this)">✕</button>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Code (2 letters)</label><input data-field="code" value="${esc(ind.code)}" maxlength="2" style="text-transform:uppercase"></div>
+        <div class="field"><label>Industry Name</label><input data-field="name" value="${esc(ind.name)}"></div>
+      </div>
+      <div class="field"><label>Description</label><textarea data-field="description" rows="2">${esc(ind.description)}</textarea></div>
+    </div>`).join('');
+  return card('Section Header', `
+    ${field('Heading','heading',d.heading)}
+    ${textarea('Description','description',d.description)}
+  `) +
+  card('Industries', `
+    <div class="list-field" data-list="items">${items}</div>
+    <button type="button" class="btn-add" onclick="addIndustry()">+ Add Industry</button>
+  `);
+}
+function addIndustry() {
+  const list = document.querySelector('[data-list="items"]');
+  const i = list.querySelectorAll('.list-item').length;
+  const div = document.createElement('div');
+  div.className='list-item'; div.dataset.index=i;
+  div.innerHTML=`
+    <div class="list-item-header">
+      <span class="list-item-title">Industry ${i+1}</span>
+      <div class="list-item-actions">
+        <button type="button" class="btn-icon" onclick="moveItem(this,-1)">↑</button>
+        <button type="button" class="btn-icon" onclick="moveItem(this,1)">↓</button>
+        <button type="button" class="btn-icon danger" onclick="removeItem(this)">✕</button>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Code (2 letters)</label><input data-field="code" value="XX" maxlength="2"></div>
+      <div class="field"><label>Industry Name</label><input data-field="name" value="New Industry"></div>
+    </div>
+    <div class="field"><label>Description</label><textarea data-field="description" rows="2"></textarea></div>`;
+  list.appendChild(div);
+}
+
+// ── PROCESS ───────────────────────────────────────────────────────────────────
+function process(d) {
+  const steps = (d.steps||[]).map((s,i)=>`
+    <div class="list-item" data-index="${i}">
+      <div class="list-item-header">
+        <span class="list-item-title">Step ${i+1} — ${esc(s.title)}</span>
+        <button type="button" class="btn-icon danger" onclick="removeItem(this)">✕</button>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Step Number</label><input data-field="number" value="${esc(s.number)}"></div>
+        <div class="field"><label>Title</label><input data-field="title" value="${esc(s.title)}"></div>
+      </div>
+      <div class="field"><label>Description</label><textarea data-field="description" rows="2">${esc(s.description)}</textarea></div>
+    </div>`).join('');
+  return card('Section Header', `
+    ${field('Heading','heading',d.heading)}
+    ${textarea('Description','description',d.description)}
+  `) +
+  card('Steps', `
+    <div class="list-field" data-list="steps">${steps}</div>
+    <button type="button" class="btn-add" onclick="addStep()">+ Add Step</button>
+  `);
+}
+function addStep() {
+  const list = document.querySelector('[data-list="steps"]');
+  const i = list.querySelectorAll('.list-item').length;
+  const div = document.createElement('div');
+  div.className='list-item'; div.dataset.index=i;
+  div.innerHTML=`
+    <div class="list-item-header">
+      <span class="list-item-title">Step ${i+1}</span>
+      <button type="button" class="btn-icon danger" onclick="removeItem(this)">✕</button>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Step Number</label><input data-field="number" value="0${i+1}"></div>
+      <div class="field"><label>Title</label><input data-field="title" value="New Step"></div>
+    </div>
+    <div class="field"><label>Description</label><textarea data-field="description" rows="2"></textarea></div>`;
+  list.appendChild(div);
+}
+
+// ── TECH ──────────────────────────────────────────────────────────────────────
+function tech(d) {
+  return card('Section Header', `
+    ${field('Heading','heading',d.heading)}
+    ${textarea('Description','description',d.description)}
+  `) +
+  card('Technologies', `
+    <div class="field">
+      <label>Technology List</label>
+      <span class="hint">One technology per line</span>
+      <textarea name="technologies_raw" rows="8" style="font-family:monospace;font-size:0.85rem">${esc((d.technologies||[]).join('\n'))}</textarea>
+    </div>
+  `) +
+  card('Certifications', `
+    <div class="field">
+      <label>Certifications</label>
+      <span class="hint">One certification per line</span>
+      <textarea name="certifications_raw" rows="6" style="font-family:monospace;font-size:0.85rem">${esc((d.certifications||[]).join('\n'))}</textarea>
+    </div>
+  `);
+}
+
+// ── CTA ───────────────────────────────────────────────────────────────────────
+function cta(d) {
+  const svcs = (d.services_list||[]).map((s,i)=>`
+    <div class="list-item" data-index="${i}">
+      <div class="list-item-header">
+        <span class="list-item-title">Option ${i+1}</span>
+        <div class="list-item-actions">
+          <button type="button" class="btn-icon" onclick="moveItem(this,-1)">↑</button>
+          <button type="button" class="btn-icon" onclick="moveItem(this,1)">↓</button>
+          <button type="button" class="btn-icon danger" onclick="removeItem(this)">✕</button>
+        </div>
+      </div>
+      <div class="field"><label>Service Name</label><input data-field="item" value="${esc(s)}"></div>
+    </div>`).join('');
+  return card('CTA Content', `
+    ${field('Heading','heading',d.heading)}
+    ${textarea('Description','description',d.description)}
+    <div class="field-row">
+      ${field('Phone CTA Label','phone_label',d.phone_label)}
+      ${field('Form Heading','form_heading',d.form_heading)}
+    </div>
+    <div class="field">
+      <label>Formspree Form ID</label>
+      <span class="hint">Get a free form ID at formspree.io → paste it here for contact form emails</span>
+      <input name="formspree_id" value="${esc(d.formspree_id||'')}">
+    </div>
+  `) +
+  card('Services Dropdown Options', `
+    <div class="list-field" data-list="services_list">${svcs}</div>
+    <button type="button" class="btn-add" onclick="addService_cta()">+ Add Option</button>
+  `);
+}
+function addService_cta() {
+  const list = document.querySelector('[data-list="services_list"]');
+  const i = list.querySelectorAll('.list-item').length;
+  const div = document.createElement('div');
+  div.className='list-item'; div.dataset.index=i;
+  div.innerHTML=`
+    <div class="list-item-header">
+      <span class="list-item-title">Option ${i+1}</span>
+      <div class="list-item-actions">
+        <button type="button" class="btn-icon" onclick="moveItem(this,-1)">↑</button>
+        <button type="button" class="btn-icon" onclick="moveItem(this,1)">↓</button>
+        <button type="button" class="btn-icon danger" onclick="removeItem(this)">✕</button>
+      </div>
+    </div>
+    <div class="field"><label>Service Name</label><input data-field="item" value="New Service"></div>`;
+  list.appendChild(div);
+}
+
+// ── List item helpers ─────────────────────────────────────────────────────────
+function removeItem(btn) {
+  if (!confirm('Remove this item?')) return;
+  btn.closest('.list-item').remove();
+}
+function moveItem(btn, dir) {
+  const item = btn.closest('.list-item');
+  const list = item.parentElement;
+  if (dir === -1 && item.previousElementSibling?.classList.contains('list-item')) {
+    list.insertBefore(item, item.previousElementSibling);
+  } else if (dir === 1 && item.nextElementSibling?.classList.contains('list-item')) {
+    list.insertBefore(item.nextElementSibling, item);
+  }
+}
+
+// ── Special collector for tech page (textarea → array) ────────────────────────
+const origCollect = collectFormData;
+function collectFormData() {
+  const result = origCollect();
+  // Tech page: convert textarea lines back to arrays
+  const techRaw = document.querySelector('[name="technologies_raw"]');
+  const certRaw = document.querySelector('[name="certifications_raw"]');
+  if (techRaw) result.technologies = techRaw.value.split('\n').map(s=>s.trim()).filter(Boolean);
+  if (certRaw) result.certifications = certRaw.value.split('\n').map(s=>s.trim()).filter(Boolean);
+  // CTA services_list: items have data-field="item" which are strings not objects
+  if (currentPage === 'cta') {
+    const listEl = document.querySelector('[data-list="services_list"]');
+    if (listEl) {
+      result.services_list = Array.from(listEl.querySelectorAll('[data-field="item"]')).map(el=>el.value);
+    }
+  }
+  return result;
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+loadPage('settings');
+</script>
+</body>
+</html>

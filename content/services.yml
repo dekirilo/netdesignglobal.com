@@ -1,0 +1,35 @@
+heading: Comprehensive Network Solutions
+description: From enterprise campus design to zero-trust security architecture — we cover every layer of your network infrastructure lifecycle.
+items:
+  - title: Enterprise Network Solutions
+    description: Campus and branch network architecture for corporate offices and distributed organizations. Built for performance and resilience across core, distribution, and access layers.
+    tags: LAN/WAN, SD-WAN, Wi-Fi, MPLS, QoS, VPN
+    icon: monitor
+  - title: Data Center Architecture
+    description: Modern spine-leaf data center designs with high availability, zero downtime, virtualization integration, and storage networking for SAN/NAS environments.
+    tags: Spine-Leaf, VMware, Kubernetes, SAN/NAS, SDN, HA
+    icon: database
+  - title: Network Security Solutions
+    description: Zero Trust architecture, next-gen firewalls, NAC, micro-segmentation, and DDoS protection. Compliance-ready for ISO 27001, GDPR, and HIPAA.
+    tags: Zero Trust, NGFW, ZTNA, IDS/IPS, NAC, SIEM
+    icon: lock
+  - title: Cloud & Hybrid Design
+    description: Multi-cloud architecture, secure VPC/VNet design, Direct Connect and ExpressRoute integrations across AWS, Azure, and GCP with cloud-native security controls.
+    tags: AWS, Azure, GCP, Hybrid, VPC, ExpressRoute
+    icon: cloud
+  - title: Monitoring & Visibility
+    description: Real-time network telemetry, NetFlow analysis, performance dashboards, and proactive fault detection with capacity planning to stay ahead of issues.
+    tags: SNMP, NetFlow, Telemetry, SIEM, Alerting
+    icon: chart
+  - title: Implementation & Migration
+    description: End-to-end deployment, legacy system migrations, and cutover strategies engineered to minimize downtime and eliminate business disruption risk.
+    tags: Deployment, Migration, Testing, Cutover, Validation
+    icon: radio
+  - title: Optimization & Support
+    description: Ongoing performance tuning, security patch management, network audits, and optional fully managed services to keep infrastructure at peak health.
+    tags: Tuning, Audits, Managed, 24/7 Support, Updates
+    icon: sun
+  - title: Documentation & Consulting
+    description: HLD/LLD design documents, detailed network diagrams, IP addressing plans, runbooks, SOPs, and strategic capacity growth planning deliverables.
+    tags: HLD/LLD, Diagrams, IP Plans, Runbooks, SOPs
+    icon: file

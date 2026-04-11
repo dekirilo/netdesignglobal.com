@@ -1,0 +1,23 @@
+heading: Trusted Technologies
+description: Vendor-neutral but deeply certified. We recommend what's right for your environment, not what's easiest for us.
+technologies:
+  - Cisco
+  - Juniper
+  - Palo Alto
+  - Fortinet
+  - Aruba
+  - VMware
+  - AWS
+  - Azure
+  - GCP
+  - Ansible
+  - Terraform
+certifications:
+  - CCIE
+  - CCNP
+  - CCDP
+  - AWS SAA
+  - Azure Network Engineer
+  - PCNSE
+  - NSE 7
+  - JNCIP

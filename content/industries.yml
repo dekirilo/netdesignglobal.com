@@ -1,0 +1,21 @@
+heading: Industries We Serve
+description: Specialized network expertise across regulated and high-demand industries where uptime and security are non-negotiable.
+items:
+  - code: FN
+    name: Finance
+    description: Low-latency, PCI-DSS compliant trading and banking infrastructure.
+  - code: HC
+    name: Healthcare
+    description: HIPAA-compliant, HL7/FHIR-ready hospital and clinic networks.
+  - code: RT
+    name: Retail
+    description: Multi-site POS, SD-WAN branch connectivity at scale.
+  - code: TC
+    name: Technology
+    description: High-density data centers and DevOps-ready automation.
+  - code: GV
+    name: Government
+    description: Secure, classified-ready public sector infrastructure.
+  - code: MF
+    name: Manufacturing
+    description: OT/IT convergence and Industrial IoT network design.

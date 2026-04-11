@@ -1,0 +1,42 @@
+version: '3.8'
+
+# Local development only — GitHub Pages handles production hosting
+# Run: docker compose up --build -d
+# Site:  http://localhost
+# Admin: http://localhost/admin
+
+services:
+
+  nginx:
+    image: nginx:alpine
+    platform: linux/arm64
+    container_name: ndg_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./public:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - cms
+    networks:
+      - ndg_net
+
+  cms:
+    build: .
+    platform: linux/arm64
+    container_name: ndg_cms
+    restart: unless-stopped
+    expose:
+      - "3001"
+    volumes:
+      - ./content:/app/content
+      - ./public:/app/public
+      - ./build.js:/app/build.js
+      - ./api.js:/app/api.js
+    networks:
+      - ndg_net
+
+networks:
+  ndg_net:
+    driver: bridge

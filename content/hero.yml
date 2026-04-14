@@ -12,5 +12,5 @@ stats:
     label: Network Uptime
   - number: "15+"
     label: Years Experience
-
-    label: CCIE Certified Engineer
+  - number: "2"
+    label: CCIE Architects 

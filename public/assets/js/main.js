@@ -181,22 +181,20 @@
 
 
   /* ─────────────────────────────────────────────
-   * 6. CONTACT FORM — toggle + AJAX submit
+   * 6. CONTACT FORM — toggle + Formspree submit
    * ─────────────────────────────────────────── */
   (function initContactForm() {
     var openBtn  = document.getElementById('open-contact-form');
     var formWrap = document.getElementById('contact-form-wrap');
     var form     = document.getElementById('ndg-contact-form');
-    var btnText  = document.getElementById('cf-btn-text');
     var response = document.getElementById('cf-response');
 
+    // Toggle form visibility
     if (openBtn && formWrap) {
       openBtn.addEventListener('click', function () {
         var isVisible = formWrap.style.display !== 'none';
         formWrap.style.display = isVisible ? 'none' : 'block';
-
         if (!isVisible) {
-          // Smooth scroll to form
           setTimeout(function () {
             formWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }, 50);
@@ -209,10 +207,7 @@
     form.addEventListener('submit', function (e) {
       e.preventDefault();
 
-      var data = new FormData(form);
-      data.append('action', 'ndg_contact');
-
-      // Validate client-side
+      // Client-side validation
       var name    = form.querySelector('[name="name"]').value.trim();
       var email   = form.querySelector('[name="email"]').value.trim();
       var message = form.querySelector('[name="message"]').value.trim();
@@ -227,33 +222,42 @@
         return;
       }
 
-      // Disable button
-      var submitBtn = form.querySelector('#cf-submit');
-      submitBtn.disabled = true;
-      if (btnText) btnText.textContent = 'Sending…';
+      // Disable submit button while sending
+      var submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Sending…';
+      }
+      showResponse('', false);
 
-      var ajaxUrl = (typeof ndgData !== 'undefined') ? ndgData.ajaxUrl : '/wp-admin/admin-ajax.php';
+      // Submit to Formspree — reads the action URL directly from the form tag
+      var formspreeUrl = form.getAttribute('action');
 
-      fetch(ajaxUrl, {
+      fetch(formspreeUrl, {
         method: 'POST',
-        body: data,
-        credentials: 'same-origin',
+        body: new FormData(form),
+        headers: { 'Accept': 'application/json' }
       })
-      .then(function (res) { return res.json(); })
-      .then(function (json) {
-        if (json.success) {
-          showResponse(json.data.message || 'Message sent successfully!', false);
+      .then(function (res) {
+        if (res.ok) {
+          showResponse('Message sent! We will be in touch within 24 hours.', false);
           form.reset();
         } else {
-          showResponse(json.data.message || 'Something went wrong. Please try again.', true);
+          return res.json().then(function (data) {
+            var msg = (data.errors && data.errors.map(function(e){ return e.message; }).join(', '))
+                      || 'Something went wrong. Please try again.';
+            showResponse(msg, true);
+          });
         }
       })
       .catch(function () {
-        showResponse('Network error. Please email us directly at info@netdesignglobal.com', true);
+        showResponse('Network error. Please email info@netdesignglobal.com directly.', true);
       })
       .finally(function () {
-        submitBtn.disabled = false;
-        if (btnText) btnText.textContent = 'Send Message';
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Send Message';
+        }
       });
     });
 

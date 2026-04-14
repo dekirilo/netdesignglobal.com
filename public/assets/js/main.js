@@ -173,7 +173,22 @@
       var target   = document.getElementById(targetId);
       if (!target) return;
       e.preventDefault();
-      var offset = 72; // nav height
+
+      // "Get a Quote" nav button — open the form and scroll directly to it
+      if (this.classList.contains('nav-cta')) {
+        var formWrap = document.getElementById('contact-form-wrap');
+        if (formWrap) {
+          formWrap.style.display = 'block';
+          setTimeout(function () {
+            var offset = 88;
+            var top = formWrap.getBoundingClientRect().top + window.scrollY - offset;
+            window.scrollTo({ top: top, behavior: 'smooth' });
+          }, 50);
+          return;
+        }
+      }
+
+      var offset = 72;
       var top    = target.getBoundingClientRect().top + window.scrollY - offset;
       window.scrollTo({ top: top, behavior: 'smooth' });
     });

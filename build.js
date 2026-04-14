@@ -46,17 +46,102 @@ function buildNav(S) {
     <li><a href="#why">About</a></li>
     <li><a href="#industries">Industries</a></li>
     <li><a href="#process">Process</a></li>
-    <li><a href="#contact" class="nav-cta">Get a Quote</a></li>
+    <li><a href="#cta" class="nav-cta">Get a Quote</a></li>
   </ul>
 </nav>`;
 }
 
 function buildHero(H) {
-  const stats = (H.stats || []).map(s => `
-    <div class="stat-chip">
-      <span class="stat-num">${esc(s.number)}</span>
-      <span class="stat-label">${esc(s.label)}</span>
-    </div>`).join('');
+  const diagram = `<div class="hero-stats" aria-label="Spine-leaf network topology diagram">
+<svg width="100%" viewBox="0 0 320 338" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>Spine-leaf network topology</title>
+<defs><style>
+@keyframes ndg-flow{to{stroke-dashoffset:-24}}
+@keyframes ndg-glow{0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes ndg-blink{0%,100%{fill-opacity:.3}50%{fill-opacity:1}}
+.nfl{stroke-dasharray:4 8;animation:ndg-flow var(--d,1.4s) linear infinite;fill:none}
+.ngs{animation:ndg-glow var(--d,3s) ease-in-out infinite}
+.nbk{animation:ndg-blink var(--d,2s) ease-in-out infinite}
+</style></defs>
+<rect x="0" y="30" width="320" height="88" fill="rgba(5,99,255,0.03)"/>
+<rect x="0" y="142" width="320" height="78" fill="rgba(0,180,255,0.02)"/>
+<rect x="0" y="248" width="320" height="78" fill="rgba(0,100,160,0.025)"/>
+<line x1="60" y1="132" x2="312" y2="132" stroke="rgba(0,180,255,0.08)" stroke-width="0.8" stroke-dasharray="4 6"/>
+<line x1="60" y1="238" x2="312" y2="238" stroke="rgba(0,180,255,0.07)" stroke-width="0.8" stroke-dasharray="4 6"/>
+<text x="8" y="68" font-family="JetBrains Mono,monospace" font-size="7.5" fill="rgba(85,136,255,0.7)" letter-spacing="2.5">SPINE</text>
+<text x="8" y="182" font-family="JetBrains Mono,monospace" font-size="7.5" fill="rgba(0,212,255,0.6)" letter-spacing="2.5">LEAF</text>
+<text x="8" y="292" font-family="JetBrains Mono,monospace" font-size="7.5" fill="rgba(0,150,200,0.55)" letter-spacing="2">SERVER</text>
+<line x1="115" y1="72" x2="205" y2="72" stroke="rgba(5,99,255,0.4)" stroke-width="1.5" fill="none"/>
+<path d="M115 72 L205 72" class="nfl" stroke="#0563ff" stroke-width="1.5" style="--d:0.7s"/>
+<g stroke="rgba(0,180,255,0.13)" stroke-width="0.8" fill="none">
+<line x1="97" y1="85" x2="75" y2="157"/><line x1="97" y1="85" x2="138" y2="157"/>
+<line x1="97" y1="85" x2="200" y2="157"/><line x1="97" y1="85" x2="253" y2="157"/>
+<line x1="223" y1="85" x2="75" y2="157"/><line x1="223" y1="85" x2="138" y2="157"/>
+<line x1="223" y1="85" x2="200" y2="157"/><line x1="223" y1="85" x2="253" y2="157"/>
+</g>
+<path d="M97 85 L75 157" class="nfl" stroke="rgba(0,212,255,0.7)" stroke-width="1.1" style="--d:1.25s"/>
+<path d="M97 85 L138 157" class="nfl" stroke="rgba(0,212,255,0.7)" stroke-width="1.1" style="--d:1.75s"/>
+<path d="M97 85 L200 157" class="nfl" stroke="rgba(0,212,255,0.4)" stroke-width="0.9" style="--d:2.15s"/>
+<path d="M97 85 L253 157" class="nfl" stroke="rgba(0,212,255,0.28)" stroke-width="0.7" style="--d:2.6s"/>
+<path d="M223 85 L75 157" class="nfl" stroke="rgba(85,136,255,0.35)" stroke-width="0.7" style="--d:2.0s"/>
+<path d="M223 85 L138 157" class="nfl" stroke="rgba(85,136,255,0.5)" stroke-width="0.9" style="--d:1.55s"/>
+<path d="M223 85 L200 157" class="nfl" stroke="rgba(85,136,255,0.7)" stroke-width="1.1" style="--d:1.1s"/>
+<path d="M223 85 L253 157" class="nfl" stroke="rgba(85,136,255,0.7)" stroke-width="1.1" style="--d:1.65s"/>
+<g stroke="rgba(0,120,190,0.2)" stroke-width="0.6" fill="none">
+<line x1="75" y1="171" x2="62" y2="256"/><line x1="75" y1="171" x2="88" y2="256"/>
+<line x1="138" y1="171" x2="124" y2="256"/><line x1="138" y1="171" x2="152" y2="256"/>
+<line x1="200" y1="171" x2="186" y2="256"/><line x1="200" y1="171" x2="214" y2="256"/>
+<line x1="253" y1="171" x2="240" y2="256"/><line x1="253" y1="171" x2="266" y2="256"/>
+</g>
+<path d="M75 171 L62 256" class="nfl" stroke="rgba(0,180,255,0.5)" stroke-width="0.8" style="--d:0.85s"/>
+<path d="M138 171 L152 256" class="nfl" stroke="rgba(0,180,255,0.5)" stroke-width="0.8" style="--d:1.05s"/>
+<path d="M200 171 L186 256" class="nfl" stroke="rgba(0,180,255,0.5)" stroke-width="0.8" style="--d:1.25s"/>
+<path d="M253 171 L266 256" class="nfl" stroke="rgba(0,180,255,0.5)" stroke-width="0.8" style="--d:0.95s"/>
+<g class="ngs" style="--d:3.2s">
+<rect x="52" y="57" width="90" height="30" rx="4" fill="rgba(3,10,36,0.97)" stroke="#0563ff" stroke-width="1.3"/>
+<text x="97" y="72" text-anchor="middle" dominant-baseline="central" font-family="JetBrains Mono,monospace" font-size="9" fill="#5588ff" font-weight="500" letter-spacing="1">SPINE-1</text>
+<circle cx="135" cy="65" r="3" fill="#00d4ff" class="nbk" style="--d:2.1s"/>
+</g>
+<g class="ngs" style="--d:2.8s">
+<rect x="178" y="57" width="90" height="30" rx="4" fill="rgba(3,10,36,0.97)" stroke="#0563ff" stroke-width="1.3"/>
+<text x="223" y="72" text-anchor="middle" dominant-baseline="central" font-family="JetBrains Mono,monospace" font-size="9" fill="#5588ff" font-weight="500" letter-spacing="1">SPINE-2</text>
+<circle cx="261" cy="65" r="3" fill="#00d4ff" class="nbk" style="--d:1.7s"/>
+</g>
+<rect x="44" y="157" width="62" height="26" rx="3" fill="rgba(0,12,38,0.97)" stroke="rgba(0,212,255,0.62)" stroke-width="1"/>
+<text x="75" y="170" text-anchor="middle" dominant-baseline="central" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#00d4ff" letter-spacing="0.8">LEAF-1</text>
+<rect x="107" y="157" width="62" height="26" rx="3" fill="rgba(0,12,38,0.97)" stroke="rgba(0,212,255,0.62)" stroke-width="1"/>
+<text x="138" y="170" text-anchor="middle" dominant-baseline="central" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#00d4ff" letter-spacing="0.8">LEAF-2</text>
+<rect x="169" y="157" width="62" height="26" rx="3" fill="rgba(0,12,38,0.97)" stroke="rgba(0,212,255,0.62)" stroke-width="1"/>
+<text x="200" y="170" text-anchor="middle" dominant-baseline="central" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#00d4ff" letter-spacing="0.8">LEAF-3</text>
+<rect x="222" y="157" width="62" height="26" rx="3" fill="rgba(0,12,38,0.97)" stroke="rgba(0,212,255,0.62)" stroke-width="1"/>
+<text x="253" y="170" text-anchor="middle" dominant-baseline="central" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#00d4ff" letter-spacing="0.8">LEAF-4</text>
+<circle cx="62" cy="272" r="11" fill="rgba(3,8,22,0.97)" stroke="rgba(0,180,255,0.4)" stroke-width="1"/>
+<text x="62" y="270" text-anchor="middle" dominant-baseline="central" font-family="JetBrains Mono,monospace" font-size="6.5" fill="rgba(0,190,255,0.75)">SRV</text>
+<circle cx="62" cy="279" r="2" fill="rgba(0,180,255,0.55)" class="nbk" style="--d:3.1s"/>
+<circle cx="88" cy="272" r="11" fill="rgba(3,8,22,0.97)" stroke="rgba(0,180,255,0.4)" stroke-width="1"/>
+<text x="88" y="270" text-anchor="middle" dominant-baseline="central" font-family="JetBrains Mono,monospace" font-size="6.5" fill="rgba(0,190,255,0.75)">SRV</text>
+<circle cx="88" cy="279" r="2" fill="rgba(0,180,255,0.55)" class="nbk" style="--d:2.3s"/>
+<circle cx="124" cy="272" r="11" fill="rgba(3,8,22,0.97)" stroke="rgba(0,180,255,0.4)" stroke-width="1"/>
+<text x="124" y="270" text-anchor="middle" dominant-baseline="central" font-family="JetBrains Mono,monospace" font-size="6.5" fill="rgba(0,190,255,0.75)">SRV</text>
+<circle cx="124" cy="279" r="2" fill="rgba(0,180,255,0.55)" class="nbk" style="--d:1.9s"/>
+<circle cx="152" cy="272" r="11" fill="rgba(3,8,22,0.97)" stroke="rgba(0,180,255,0.4)" stroke-width="1"/>
+<text x="152" y="270" text-anchor="middle" dominant-baseline="central" font-family="JetBrains Mono,monospace" font-size="6.5" fill="rgba(0,190,255,0.75)">SRV</text>
+<circle cx="152" cy="279" r="2" fill="rgba(0,180,255,0.55)" class="nbk" style="--d:2.7s"/>
+<circle cx="186" cy="272" r="11" fill="rgba(3,8,22,0.97)" stroke="rgba(0,180,255,0.4)" stroke-width="1"/>
+<text x="186" y="270" text-anchor="middle" dominant-baseline="central" font-family="JetBrains Mono,monospace" font-size="6.5" fill="rgba(0,190,255,0.75)">SRV</text>
+<circle cx="186" cy="279" r="2" fill="rgba(0,180,255,0.55)" class="nbk" style="--d:1.5s"/>
+<circle cx="214" cy="272" r="11" fill="rgba(3,8,22,0.97)" stroke="rgba(0,180,255,0.4)" stroke-width="1"/>
+<text x="214" y="270" text-anchor="middle" dominant-baseline="central" font-family="JetBrains Mono,monospace" font-size="6.5" fill="rgba(0,190,255,0.75)">SRV</text>
+<circle cx="214" cy="279" r="2" fill="rgba(0,180,255,0.55)" class="nbk" style="--d:3.4s"/>
+<circle cx="240" cy="272" r="11" fill="rgba(3,8,22,0.97)" stroke="rgba(0,180,255,0.4)" stroke-width="1"/>
+<text x="240" y="270" text-anchor="middle" dominant-baseline="central" font-family="JetBrains Mono,monospace" font-size="6.5" fill="rgba(0,190,255,0.75)">SRV</text>
+<circle cx="240" cy="279" r="2" fill="rgba(0,180,255,0.55)" class="nbk" style="--d:2.5s"/>
+<circle cx="266" cy="272" r="11" fill="rgba(3,8,22,0.97)" stroke="rgba(0,180,255,0.4)" stroke-width="1"/>
+<text x="266" y="270" text-anchor="middle" dominant-baseline="central" font-family="JetBrains Mono,monospace" font-size="6.5" fill="rgba(0,190,255,0.75)">SRV</text>
+<circle cx="266" cy="279" r="2" fill="rgba(0,180,255,0.55)" class="nbk" style="--d:1.2s"/>
+<text x="160" y="310" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="7" fill="rgba(0,180,255,0.25)" letter-spacing="2">SPINE-LEAF FABRIC</text>
+<text x="160" y="324" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="6.5" fill="rgba(0,180,255,0.18)" letter-spacing="1.5">40GbE &#183; ZERO SPoF</text>
+</svg></div>`;
 
   return `
 <section id="hero" aria-label="Hero">
@@ -70,14 +155,14 @@ function buildHero(H) {
     </h1>
     <p class="hero-sub">${esc(H.subheadline)}</p>
     <div class="hero-actions">
-      <a href="#contact" class="btn-primary">
+      <a href="#cta" class="btn-primary nav-cta" style="background:var(--blue);color:#fff;border:none">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         ${esc(H.cta_primary_label)}
       </a>
       <a href="#services" class="btn-outline">${esc(H.cta_secondary_label)}</a>
     </div>
   </div>
-  <div class="hero-stats" aria-label="Key statistics">${stats}</div>
+  ${diagram}
 </section>`;
 }
 
